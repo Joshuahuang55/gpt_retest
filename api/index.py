@@ -3,7 +3,7 @@ from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
 #from api.chatgpt import ChatGPT
-import ChatGPT
+import chatgpt as ChatGPT
 
 import os
 
