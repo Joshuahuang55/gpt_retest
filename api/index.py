@@ -2,8 +2,7 @@ from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
-#from api.chatgpt import ChatGPT
-import chatgpt as ChatGPT
+from api.chatgpt import ChatGPT
 
 import os
 
@@ -12,7 +11,7 @@ line_handler = WebhookHandler(os.getenv("LINE_CHANNEL_SECRET"))
 working_status = os.getenv("DEFALUT_TALKING", default = "true").lower() == "true"
 
 app = Flask(__name__)
-#chatgpt = ChatGPT()
+chatgpt = ChatGPT()
 
 # domain root
 @app.route('/')
@@ -36,13 +35,20 @@ def callback():
 
 @line_handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    text = event.message.text
-    anser = ChatGPT.prompt_with_gpt(text)
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(text=anser)
-    )
+    global working_status
+    working_status = True
+    
+    if event.message.type != "text":
+        return
+    
 
+    if working_status:
+        chatgpt.add_msg(f"Human:{event.message.text}?\n")
+        reply_msg = chatgpt.get_response().replace("AI:", "", 1)
+        chatgpt.add_msg(f"AI:{reply_msg}\n")
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(text=reply_msg))
 
 
 if __name__ == "__main__":
